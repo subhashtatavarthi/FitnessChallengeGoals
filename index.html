@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Ladies Wellness Challenge – Fitness Tracker</title>
+  <meta name="description"
+    content="Track your 30-day wellness challenge with friends. Log workouts, meals, steps, and compete on the leaderboard.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>">
+</head>
+
+<body>
+
+  <!-- ═══════════════ SVG DEFS ═══════════════ -->
+  <svg style="position:absolute;width:0;height:0">
+    <defs>
+      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#667eea" />
+        <stop offset="100%" stop-color="#f6c343" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- ═══════════════ SETUP SCREEN ═══════════════ -->
+  <div id="setup-screen" class="screen active">
+    <div class="setup-container">
+      <div class="setup-hero">
+        <span class="logo-icon">🌸</span>
+        <h1>Ladies Wellness Challenge</h1>
+        <p>Build healthy habits together. Stay accountable. Have fun!</p>
+      </div>
+
+      <div class="glass-card">
+        <!-- Challenge Name -->
+        <div class="form-group">
+          <label for="challenge-name">Challenge Name</label>
+          <input type="text" id="challenge-name" class="form-input" placeholder="e.g. Glow & Grow Fitness Challenge"
+            maxlength="40">
+        </div>
+
+        <!-- Duration -->
+        <div class="form-group">
+          <label>Duration</label>
+          <div class="duration-options">
+            <button class="duration-btn" data-days="21">21 Days<small>Kickstart</small></button>
+            <button class="duration-btn selected" data-days="30">30 Days<small>Ideal</small></button>
+            <button class="duration-btn" data-days="45">45 Days<small>Transform</small></button>
+          </div>
+        </div>
+
+        <!-- Participants -->
+        <div class="form-group">
+          <label>Participants</label>
+          <div class="participant-input-row">
+            <input type="text" id="participant-name-input" class="form-input" placeholder="Enter name…" maxlength="20">
+            <button class="btn-add" id="btn-add-participant" title="Add participant">+</button>
+          </div>
+          <ul class="participants-list" id="participants-list"></ul>
+        </div>
+
+        <!-- Start button -->
+        <button class="btn-primary" id="btn-start-challenge" disabled>
+          🚀 Start Challenge
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MAIN APP (hidden until started) ═══════════════ -->
+  <div id="app-wrapper" style="display:none">
+
+    <!-- App Header -->
+    <div class="app-header">
+      <div class="challenge-name" id="app-challenge-name"></div>
+      <div class="day-counter">Day <span class="day-number" id="app-day-number">1</span> of <span
+          id="app-total-days">30</span></div>
+    </div>
+
+    <!-- ═══════════════ DASHBOARD ═══════════════ -->
+    <div id="dashboard-screen" class="screen active">
+      <div class="dashboard-content">
+        <!-- Progress ring -->
+        <div class="progress-ring-container">
+          <div class="glass-card progress-ring-card">
+            <div class="progress-ring">
+              <svg width="140" height="140">
+                <circle class="progress-ring-bg" cx="70" cy="70" r="60" fill="none" stroke-width="10" />
+                <circle class="progress-ring-fill" id="progress-circle" cx="70" cy="70" r="60" fill="none"
+                  stroke-width="10" stroke-dasharray="376.99" stroke-dashoffset="376.99" />
+              </svg>
+              <div class="ring-text">
+                <div class="day-big" id="ring-day">1</div>
+                <div class="day-label">of <span id="ring-total">30</span></div>
+              </div>
+            </div>
+            <div class="progress-subtitle" id="progress-subtitle">Challenge begins!</div>
+          </div>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="quick-stats">
+          <div class="glass-card stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="stat-participants">0</div>
+            <div class="stat-label">Participants</div>
+          </div>
+          <div class="glass-card stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-value" id="stat-total-points">0</div>
+            <div class="stat-label">Group Points</div>
+          </div>
+          <div class="glass-card stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-value" id="stat-best-streak">0</div>
+            <div class="stat-label">Best Streak</div>
+          </div>
+          <div class="glass-card stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value" id="stat-avg-points">0</div>
+            <div class="stat-label">Avg / Day</div>
+          </div>
+        </div>
+
+        <!-- Leaderboard preview -->
+        <div class="leaderboard-preview">
+          <div class="section-header">
+            <h2>🏆 Leaderboard</h2>
+            <button class="view-all" id="btn-view-leaderboard">View All →</button>
+          </div>
+          <div id="dashboard-leaderboard"></div>
+        </div>
+
+        <!-- Weekly challenge preview -->
+        <div class="section-header">
+          <h2>💪 This Week's Challenge</h2>
+        </div>
+        <div class="glass-card challenge-card active-challenge" id="dashboard-weekly-challenge">
+          <div class="challenge-icon">🏃‍♀️</div>
+          <h3 id="weekly-challenge-title">Loading…</h3>
+          <p id="weekly-challenge-desc"></p>
+          <div class="challenge-progress">
+            <div class="challenge-progress-fill" id="weekly-challenge-fill" style="width: 0%"></div>
+          </div>
+          <div class="challenge-meta">
+            <span id="weekly-challenge-meta-left"></span>
+            <span id="weekly-challenge-meta-right"></span>
+          </div>
+        </div>
+
+        <!-- Manage Participants button -->
+        <button class="btn-manage-participants" id="btn-manage-participants">👥 Manage Participants</button>
+
+        <!-- Reset -->
+        <button class="btn-reset" id="btn-reset-challenge">🔄 Reset Challenge</button>
+      </div>
+    </div>
+
+    <!-- ═══ MANAGE PARTICIPANTS MODAL ═══ -->
+    <div class="modal-overlay" id="manage-modal" style="display:none">
+      <div class="glass-card modal-card">
+        <div class="modal-header">
+          <h2>👥 Manage Participants</h2>
+          <button class="modal-close-btn" id="modal-close-btn">✕</button>
+        </div>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:var(--space-lg)">
+          Tap a name to add or remove. New participants start with zero points.
+        </p>
+        <!-- Default name chips -->
+        <div id="manage-default-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--space-md)"></div>
+        <!-- Custom add -->
+        <div class="participant-input-row" style="margin-bottom:var(--space-md)">
+          <input type="text" id="manage-name-input" class="form-input" placeholder="Add new name…" maxlength="20">
+          <button class="btn-add" id="btn-manage-add">+</button>
+        </div>
+        <!-- Current custom participants -->
+        <ul class="participants-list" id="manage-custom-list"></ul>
+        <button class="btn-primary" id="btn-manage-done" style="margin-top:var(--space-lg)">✅ Done</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════ DAILY TRACKER ═══════════════ -->
+    <div id="tracker-screen" class="screen">
+      <div class="tracker-content">
+        <!-- Date navigation -->
+        <div class="date-nav">
+          <button class="date-nav-btn" id="btn-prev-day">‹</button>
+          <span class="current-date" id="tracker-current-date">Day 1</span>
+          <button class="date-nav-btn" id="btn-next-day">›</button>
+        </div>
+
+        <!-- Participant chips -->
+        <div class="participant-selector" id="participant-selector"></div>
+
+        <!-- Tracker day header -->
+        <div class="tracker-day-header">
+          <h2 id="tracker-player-title">Select a participant</h2>
+          <div class="tracker-date" id="tracker-date-subtitle"></div>
+        </div>
+
+        <!-- Core activities -->
+        <div class="activity-section-title">Core Activities</div>
+        <div class="activity-list" id="core-activity-list"></div>
+
+        <!-- Bonus activities -->
+        <div class="activity-section-title">Bonus Tasks (+1 pt each)</div>
+        <div class="activity-list" id="bonus-activity-list"></div>
+
+        <!-- Custom activity -->
+        <div class="activity-section-title">Add Your Own</div>
+        <div class="custom-activity-row">
+          <input type="text" id="custom-activity-name" class="form-input" placeholder="e.g. Drank green tea"
+            maxlength="40">
+          <input type="number" id="custom-activity-points" class="form-input points-input" placeholder="Pts" min="1"
+            max="10" value="1">
+          <button class="btn-add" id="btn-add-custom-activity" title="Add custom activity">+</button>
+        </div>
+        <div class="activity-list" id="custom-activity-list"></div>
+
+        <!-- Points summary -->
+        <div class="glass-card points-summary">
+          <div class="total-label">Today's Points</div>
+          <div class="total-value" id="today-total-points">0</div>
+          <div class="total-max">out of 20 possible</div>
+        </div>
+
+        <!-- ═══ FOOD TRACKER ═══ -->
+        <div class="food-section-title">🍽️ Food Tracker</div>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:var(--space-md);">
+          Log what you ate — calories are looked up automatically. Points are earned for healthy choices!
+        </p>
+        <div class="food-input-row">
+          <div class="food-input-wrapper">
+            <input type="text" id="food-name-input" class="form-input" placeholder="e.g. Oatmeal, Salad, Dal..."
+              autocomplete="off">
+            <div class="food-suggestion-list" id="food-suggestions" style="display:none"></div>
+          </div>
+          <div class="calories-display" id="food-cal-display">0 cal</div>
+          <button class="btn-add" id="btn-add-food" title="Log food">+</button>
+        </div>
+        <div class="activity-list food-list" id="food-log-list"></div>
+        <div class="food-summary" id="food-day-summary" style="display:none">
+          <div>
+            <div class="summary-label">Total Calories</div>
+            <div class="summary-value" id="food-total-calories">0</div>
+          </div>
+          <div>
+            <div class="summary-label">Points Earned</div>
+            <div class="summary-value" id="food-total-points" style="color:var(--accent-green)">+0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ LEADERBOARD ═══════════════ -->
+    <div id="leaderboard-screen" class="screen">
+      <div class="leaderboard-content">
+        <div class="leaderboard-podium" id="leaderboard-podium"></div>
+        <div class="full-leaderboard" id="full-leaderboard"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ CHALLENGES ═══════════════ -->
+    <div id="challenges-screen" class="screen">
+      <div class="challenges-content">
+        <div class="weekly-challenges-header">
+          <h2>🌟 Special Challenges</h2>
+          <p>Bonus points for going the extra mile!</p>
+        </div>
+        <div id="challenges-list"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ HISTORY ═══════════════ -->
+    <div id="history-screen" class="screen">
+      <div class="history-content">
+        <div class="history-header">
+          <h2>📅 Activity History</h2>
+        </div>
+        <!-- Participant selector for history -->
+        <div class="participant-selector" id="history-participant-selector"></div>
+        <div class="calendar-grid" id="history-calendar"></div>
+        <div class="heat-legend">
+          <span>Less</span>
+          <div class="heat-box heat-0" style="background:rgba(255,255,255,0.04)"></div>
+          <div class="heat-box heat-1" style="background:rgba(104,211,145,0.15)"></div>
+          <div class="heat-box heat-2" style="background:rgba(104,211,145,0.3)"></div>
+          <div class="heat-box heat-3" style="background:rgba(104,211,145,0.5)"></div>
+          <div class="heat-box heat-4" style="background:rgba(104,211,145,0.7)"></div>
+          <div class="heat-box heat-5" style="background:#68d391"></div>
+          <span>More</span>
+        </div>
+        <div class="glass-card day-detail-card" id="history-day-detail" style="display:none">
+          <h3 id="history-detail-title">Day Details</h3>
+          <div class="day-detail-activities" id="history-detail-activities"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ AWARDS ═══════════════ -->
+    <div id="awards-screen" class="screen">
+      <div class="awards-content">
+        <div class="awards-header">
+          <h2>🏅 Awards</h2>
+          <p>Recognition for outstanding effort</p>
+        </div>
+        <div id="awards-list"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
+    <nav class="nav-bar" id="nav-bar">
+      <button class="nav-btn active" data-screen="dashboard-screen">
+        <span class="nav-icon">🏠</span>
+        Home
+      </button>
+      <button class="nav-btn" data-screen="tracker-screen">
+        <span class="nav-icon">✅</span>
+        Track
+      </button>
+      <button class="nav-btn" data-screen="leaderboard-screen">
+        <span class="nav-icon">🏆</span>
+        Rank
+      </button>
+      <button class="nav-btn" data-screen="challenges-screen">
+        <span class="nav-icon">🌟</span>
+        Challenges
+      </button>
+      <button class="nav-btn" data-screen="history-screen">
+        <span class="nav-icon">📅</span>
+        History
+      </button>
+      <button class="nav-btn" data-screen="awards-screen">
+        <span class="nav-icon">🏅</span>
+        Awards
+      </button>
+    </nav>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
