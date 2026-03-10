@@ -1926,3 +1926,15 @@ a {
   background: rgba(2, 136, 209, 0.18);
   transform: translateY(-2px);
 }
+/* Mobile fix for join button */
+@media (max-width: 768px) {
+  .share-buttons-container {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .share-buttons-container .btn-manage-participants {
+    width: 100%;
+    flex: none !important;
+  }
+}
