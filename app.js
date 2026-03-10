@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   LADIES WELLNESS CHALLENGE – APP.JS
+   CRAZY FAMILIES WELLNESS CHALLENGE – APP.JS
    Full application logic with localStorage persistence
    ═══════════════════════════════════════════ */
 
@@ -1310,5 +1310,130 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// ─── CHALLENGE SHARING ─────────────────────────────
+function exportChallenge() {
+  if (!state.challengeName || !state.startDate) {
+    showToast('No active challenge to export');
+    return;
+  }
+  
+  const challengeData = {
+    name: state.challengeName,
+    totalDays: state.totalDays,
+    startDate: state.startDate,
+    participants: state.participants,
+    version: '1.0',
+    exportedAt: new Date().toISOString()
+  };
+  
+  const shareCode = btoa(JSON.stringify(challengeData));
+  return shareCode;
+}
+
+function importChallenge(shareCode) {
+  try {
+    const challengeData = JSON.parse(atob(shareCode));
+    
+    // Validate the challenge data
+    if (!challengeData.name || !challengeData.startDate || !challengeData.participants) {
+      showToast('Invalid challenge code');
+      return false;
+    }
+    
+    // Confirm import
+    if (state.challengeName && state.startDate) {
+      if (!confirm('This will replace your current challenge. Continue?')) {
+        return false;
+      }
+    }
+    
+    // Apply the imported challenge
+    state.challengeName = challengeData.name;
+    state.totalDays = challengeData.totalDays || 30;
+    state.startDate = challengeData.startDate;
+    state.participants = challengeData.participants;
+    
+    // Initialize logs for imported participants
+    state.logs = {};
+    state.customActivities = {};
+    state.foodLogs = {};
+    
+    state.participants.forEach(name => {
+      state.logs[name] = {};
+      state.customActivities[name] = {};
+      state.foodLogs[name] = {};
+    });
+    
+    saveState();
+    showApp();
+    showToast(`Challenge "${challengeData.name}" imported successfully!`);
+    return true;
+    
+  } catch (e) {
+    showToast('Invalid challenge code');
+    return false;
+  }
+}
+
+function showExportModal() {
+  const shareCode = exportChallenge();
+  if (!shareCode) return;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.style.cssText = 'display:flex;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center';
+  
+  modal.innerHTML = `
+    <div class="glass-card modal-card" style="max-width:400px;margin:20px">
+      <div class="modal-header">
+        <h2>📤 Share Challenge</h2>
+        <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:var(--space-lg)">
+        Share this code with other participants so they can join your challenge:
+      </p>
+      <div style="background:var(--bg-secondary);padding:12px;border-radius:8px;margin-bottom:var(--space-md);word-break:break-all;font-family:monospace;font-size:0.85rem">
+        ${shareCode}
+      </div>
+      <button class="btn-primary" onclick="navigator.clipboard.writeText('${shareCode}').then(() => showToast('Code copied to clipboard!'))">
+        📋 Copy Code
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+function showImportModal() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.style.cssText = 'display:flex;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center';
+  
+  modal.innerHTML = `
+    <div class="glass-card modal-card" style="max-width:400px;margin:20px">
+      <div class="modal-header">
+        <h2>📥 Join Challenge</h2>
+        <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:var(--space-lg)">
+        Enter the challenge code you received from another participant:
+      </p>
+      <textarea id="import-code-input" class="form-input" placeholder="Paste challenge code here..." style="min-height:100px;font-family:monospace;font-size:0.85rem"></textarea>
+      <button class="btn-primary" onclick="
+        const code = document.getElementById('import-code-input').value.trim();
+        if (importChallenge(code)) {
+          this.closest('.modal-overlay').remove();
+        }
+      ">
+        🚀 Join Challenge
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
 // ─── BOOT ──────────────────────────────────
 document.addEventListener('DOMContentLoaded', init);
+
+
