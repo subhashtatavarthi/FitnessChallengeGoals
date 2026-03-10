@@ -1896,3 +1896,33 @@ a {
 .modal-close-btn:hover {
   color: var(--text-primary);
 }
+/* Share Challenge buttons positioning fix */
+.share-buttons-container {
+  display: flex;
+  gap: var(--space-sm);
+  margin: var(--space-md) auto;
+  padding: var(--space-md);
+  background: var(--bg-primary);
+  border-radius: 12px;
+  position: relative;
+  z-index: 10;
+}
+
+.btn-manage-participants {
+  display: block;
+  margin: var(--space-md) auto;
+  padding: 12px 24px;
+  background: rgba(2, 136, 209, 0.12);
+  border: 1px solid rgba(2, 136, 209, 0.3);
+  color: var(--text-primary);
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  text-align: center;
+}
+
+.btn-manage-participants:hover {
+  background: rgba(2, 136, 209, 0.18);
+  transform: translateY(-2px);
+}
